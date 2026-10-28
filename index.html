@@ -46,10 +46,6 @@
 
   .main{flex:1; min-width:0; padding:0 26px 60px; max-width:1280px}
   .topbar{display:flex; align-items:center; gap:14px; padding:22px 0 18px; position:sticky; top:0; background:var(--bg); z-index:20}
-  .dots{display:flex; gap:6px}
-  .dots i{width:12px; height:12px; border-radius:50%; background:#FF5F57; display:block}
-  .dots i:nth-child(2){background:#FEBC2E}
-  .dots i:nth-child(3){background:#28C840}
   .topbar h1{font-size:22px; font-weight:700}
   .topbar .sub{font-size:12.5px; color:var(--muted); margin-top:2px}
   .spacer{flex:1}
@@ -168,7 +164,6 @@
     .stats{grid-template-columns:repeat(2,1fr); gap:12px}
     .stat .val{font-size:22px}
     .topbar h1{font-size:18px}
-    .topbar .dots{display:none}
   }
   @media(max-width:560px){.cards{grid-template-columns:1fr} .two{grid-template-columns:1fr}}
 </style>
@@ -195,7 +190,6 @@
 
   <main class="main">
     <div class="topbar">
-      <div class="dots"><i></i><i></i><i></i></div>
       <div><h1 id="view-title">Dashboard</h1><div class="sub" id="view-sub"></div></div>
       <div class="spacer"></div>
       <button class="bell" id="bell" title="Follow-up reminders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="ping" id="bell-count" hidden>0</span></button>
