@@ -129,10 +129,11 @@
   .btn-soft{background:var(--pink-soft); color:var(--pink-deep)}
   .btn-soft:hover{background:#f9d7e7}
   .btn-danger{background:#FBEAEA; color:var(--red)}
-  .btn-sm{padding:7px 12px; font-size:12.5px; border-radius:11px}
+  .btn-sm{padding:8px 13px; font-size:12.5px; border-radius:11px; min-height:36px}
   .btn-block{width:100%}
   .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
   .row.grow{flex:1}
+  @media(hover:none){.btn-sm{min-height:44px; padding:10px 15px; font-size:13px}}
 
   /* Search / toolbar */
   .toolbar{display:flex; gap:12px; align-items:center; margin-bottom:18px; flex-wrap:wrap}
@@ -465,18 +466,31 @@
     function money(n){return "RM "+Number(n||0).toFixed(2)}
     function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}
 
+    /* Accurate Mary Kay Malaysia suggested-retail prices (marykay.com.my) */
     var DEFAULT_PRODUCTS=[
-      {id:"p1",name:"TimeWise 3-In-1 Cleanser",cat:"Skincare",price:128,tag:""},
-      {id:"p2",name:"TimeWise Age Minimize 3D Firming Cream",cat:"Skincare",price:168,tag:"Bestseller"},
-      {id:"p3",name:"Botanical Effects Toner",cat:"Skincare",price:112,tag:""},
-      {id:"p4",name:"Mary Kay Eye Cream",cat:"Skincare",price:98,tag:""},
-      {id:"p5",name:"Sheer Enduring Liquid Lipstick",cat:"Makeup",price:78,tag:""},
-      {id:"p6",name:"Mary Kay Liquid Foundation",cat:"Makeup",price:128,tag:""},
-      {id:"p7",name:"Lash Love Mascara",cat:"Makeup",price:88,tag:""},
-      {id:"p8",name:"CC Cream Ultra BB",cat:"Makeup",price:98,tag:""},
-      {id:"p9",name:"TimeWise Repair Volu-Firm",cat:"Skincare",price:198,tag:"Premium"},
-      {id:"p10",name:"Fragrance Discovery Set",cat:"Fragrance",price:168,tag:""}
+      {id:"a1",name:"Mary Kay\u00ae Mattifying Cleanser 127g",cat:"Skincare",price:85,tag:""},
+      {id:"a2",name:"Mary Kay\u00ae Hydrating Moisturizer 85g",cat:"Skincare",price:85,tag:""},
+      {id:"a3",name:"Mary Kay\u00ae Balancing Toner 147ml",cat:"Skincare",price:85,tag:""},
+      {id:"a4",name:"Mary Kay\u00ae Exfoliating Scrub 88ml",cat:"Skincare",price:85,tag:""},
+      {id:"a5",name:"TimeWise\u00ae 4-in-1 Cleanser 127g",cat:"Skincare",price:119,tag:"Bestseller"},
+      {id:"a6",name:"TimeWise\u00ae Eye Cream 14g",cat:"Skincare",price:135,tag:""},
+      {id:"a7",name:"TimeWise\u00ae Antioxidant Moisturizer 88ml",cat:"Skincare",price:145,tag:""},
+      {id:"a8",name:"TimeWise\u00ae Replenishing Serum C+E 44ml",cat:"Skincare",price:279,tag:"Premium"},
+      {id:"a9",name:"TimeWise Repair\u00ae Volu-Firm\u00ae Day Cream SPF30 48g",cat:"Skincare",price:249,tag:"Premium"},
+      {id:"a10",name:"TimeWise\u00ae Miracle Set (Normal/Dry)",cat:"Skincare",price:488,tag:"Set"},
+      {id:"a11",name:"Mary Kay Melt-In Cleansing Balm 50ml",cat:"Skincare",price:139,tag:""},
+      {id:"a12",name:"Mary Kay\u00ae Intense Moisturizing Cream 51g",cat:"Skincare",price:159,tag:""},
+      {id:"a13",name:"Mary Kay Clinical Solutions\u2122 PHA+AHA Resurfacer 15ml",cat:"Skincare",price:139,tag:""},
+      {id:"a14",name:"Mary Kay Snail Gel Face Patches 60pcs",cat:"Skincare",price:158,tag:""},
+      {id:"a15",name:"TimeWise\u00ae Matte 3D Foundation",cat:"Makeup",price:85,tag:"Bestseller"},
+      {id:"a16",name:"Mary Kay\u00ae Gel Semi-Matte Lipstick 3.6g",cat:"Makeup",price:55,tag:""},
+      {id:"a17",name:"Mary Kay\u00ae Supreme Hydrating Lipstick 3.2g",cat:"Makeup",price:65,tag:""},
+      {id:"a18",name:"Mary Kay Lash Love Fanorama\u2122 Mascara 8g",cat:"Makeup",price:59,tag:""},
+      {id:"a19",name:"Mary Kay Great Heights Waterproof Mascara 8g",cat:"Makeup",price:75,tag:""},
+      {id:"a20",name:"Mary Kay\u00ae Waterproof Eyeliner 0.3g",cat:"Makeup",price:39,tag:""},
+      {id:"a21",name:"Mary Kay\u00ae Body Care Gift Set \u2013 Coconut Mousse",cat:"Body & Bath",price:69,tag:""}
     ];
+    var OLD_DEFAULT_IDS=["p1","p2","p3","p4","p5","p6","p7","p8","p9","p10"];
     var DEFAULT_TPL={
       "1w":"Hi {name}, thank you for purchasing {product} from Mary Kay! I just wanted to check in and see how you are enjoying it so far. Let me know if you have any questions - happy to help!",
       "2w":"Hi {name}, it has been a couple of weeks since your {product} arrived. I hope it is working beautifully for you! Feel free to reach out if you would like tips on using it or need a refill soon.",
@@ -485,8 +499,12 @@
 
     var state={customers:[],products:DEFAULT_PRODUCTS,sales:[],followups:[],templates:DEFAULT_TPL,notify:false};
     function load(){
-      try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); state=Object.assign(state,d); if(!state.products||!state.products.length)state.products=DEFAULT_PRODUCTS; if(!state.templates)state.templates=DEFAULT_TPL;}}catch(e){}
-      if(!state.products||!state.products.length)state.products=DEFAULT_PRODUCTS;
+      try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); state=Object.assign(state,d); if(!state.templates)state.templates=DEFAULT_TPL;}}catch(e){}
+      if(!state.products||!state.products.length){state.products=DEFAULT_PRODUCTS}
+      else{
+        var isOld=state.products.length===OLD_DEFAULT_IDS.length && state.products.every(function(p){return OLD_DEFAULT_IDS.indexOf(p.id)>=0});
+        if(isOld){state.products=DEFAULT_PRODUCTS; state._migrated=1;}
+      }
       if(!state.templates)state.templates=DEFAULT_TPL;
       if(!state.followups)state.followups=[];
     }
