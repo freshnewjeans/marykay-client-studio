@@ -678,12 +678,23 @@
     $("#sale-modal-title").textContent="Record a Sale";
     renderSaleLines();openModal("#modal-sale");
   }
+  function syncLine(line){
+    var i=parseInt(line.dataset.i,10);
+    if(!saleLineItems[i])return;
+    saleLineItems[i].pid=line.querySelector(".ln-p").value;
+    saleLineItems[i].qty=parseInt(line.querySelector(".ln-q").value||"1",10)||1;
+    var p=parseFloat(line.querySelector(".ln-price").value);saleLineItems[i].price=isNaN(p)?0:p;
+  }
   $("#s-lines").addEventListener("change",function(e){
     var line=e.target.closest(".line");if(!line)return;
     if(e.target.classList.contains("ln-p")){var opt=e.target.options[e.target.selectedIndex];if(opt&&opt.dataset.price!==undefined)line.querySelector(".ln-price").value=opt.dataset.price;}
-    updateSaleTotal();
+    syncLine(line);updateSaleTotal();
   });
-  $("#s-lines").addEventListener("input",function(e){if(e.target.classList.contains("ln-q")||e.target.classList.contains("ln-price"))updateSaleTotal()});
+  $("#s-lines").addEventListener("input",function(e){
+    if(e.target.classList.contains("ln-q")||e.target.classList.contains("ln-price")){
+      var line=e.target.closest(".line");if(line){syncLine(line);updateSaleTotal();}
+    }
+  });
   $("#s-lines").addEventListener("click",function(e){
     var rm=e.target.closest(".ln-rm");if(!rm)return;
     var line=rm.closest(".line");var i=parseInt(line.dataset.i,10);
