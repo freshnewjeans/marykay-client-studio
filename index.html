@@ -89,6 +89,11 @@
   .panel .hd{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
   .panel .hd h3{font-size:15px; font-weight:600}
   .panel .go{font-size:12.5px; color:var(--pink-deep); font-weight:600}
+  .promo{margin-bottom:16px; background:linear-gradient(135deg,#ffe4ef,#ffd3e3); border-color:#ffc1d6}
+  .promo .hd h3{color:var(--pink-deep)}
+  .promo-list{display:flex; flex-direction:column; gap:9px}
+  .promo-line{display:flex; gap:10px; align-items:center; font-size:13.5px; color:#5a3a45}
+  .promo-line svg{color:var(--pink-deep); flex-shrink:0}
   .chart{width:100%; height:260px}
 
   .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
@@ -164,6 +169,7 @@
     .stats{grid-template-columns:repeat(2,1fr); gap:12px}
     .stat .val{font-size:22px}
     .topbar h1{font-size:18px}
+    .search input{font-size:16px}
   }
   @media(max-width:560px){.cards{grid-template-columns:1fr} .two{grid-template-columns:1fr}}
 </style>
@@ -180,6 +186,7 @@
       <button class="nav-item" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>Dashboard</button>
       <button class="nav-item" data-view="customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clients <span class="badge" id="nav-customers" hidden></span></button>
       <button class="nav-item" data-view="sales"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.6 5.2A1 1 0 0 0 6.4 20h10.2a1 1 0 0 0 1-.8L19 13"/><circle cx="9.5" cy="20.5" r="1.5"/><circle cx="16.5" cy="20.5" r="1.5"/></svg>Sales</button>
+      <button class="nav-item" data-view="products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></svg>Products</button>
       <button class="nav-item" data-view="leads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/></svg>Leads <span class="badge" id="nav-leads" hidden></span></button>
       <button class="nav-item" data-view="followups"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Follow-ups <span class="badge" id="nav-followups" hidden></span></button>
       <div class="grp">Manage</div>
@@ -229,6 +236,16 @@
         <button class="btn btn-p" id="sale-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New Sale</button>
       </div>
       <div class="list" id="sale-list"></div>
+    </section>
+
+    <section class="view" id="view-products">
+      <div class="promo panel" id="promo-panel"></div>
+      <div class="toolbar">
+        <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg><input id="prod-search" placeholder="Search products..."></div>
+        <button class="btn btn-p" id="prod-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+      </div>
+      <div class="hint" style="margin:0 2px 12px">This catalogue feeds the product list in "New Sale". Editing or adding products here updates your sales dropdown instantly.</div>
+      <div class="cards" id="prod-list"></div>
     </section>
 
     <section class="view" id="view-leads">
@@ -326,6 +343,30 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- ===== Modal: Product ===== -->
+<div class="modal" id="modal-product">
+  <div class="back"></div>
+  <div class="box">
+    <div class="mt"><h3 id="prod-modal-title">Add Product</h3><button class="x" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="field"><label>Product name</label><input id="p-name" placeholder="e.g. TimeWise Eye Cream"></div>
+    <div class="field"><label>Price (RM)</label><input id="p-price" type="number" min="0" step="0.01" placeholder="e.g. 135.00"></div>
+    <div class="hint">Suggested retail in Malaysian Ringgit (RM). This updates the price shown in "New Sale".</div>
+    <div class="actions"><button class="btn btn-ghost grow" data-close>Cancel</button><button class="btn btn-p grow" id="prod-save">Save Product</button></div>
+  </div>
+</div>
+
+<!-- ===== Modal: Promotion ===== -->
+<div class="modal" id="modal-promo">
+  <div class="back"></div>
+  <div class="box">
+    <div class="mt"><h3>This Month's Offers</h3><button class="x" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="field"><label>Promotion title</label><input id="promo-title" placeholder="e.g. October 2026 Promotion"></div>
+    <div class="field"><label>Offers (one per line)</label><textarea id="promo-lines" rows="6" placeholder="Limited-Edition Highlighter - RM XX&#10;Buy RM250 get free gift..."></textarea></div>
+    <div class="hint">Paste your Mary Kay portal / newsletter promo here and it will show on the Products page until you change it.</div>
+    <div class="actions"><button class="btn btn-ghost grow" data-close>Cancel</button><button class="btn btn-p grow" id="promo-save">Save Offers</button></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script>
 (function(){
@@ -373,7 +414,7 @@
     "1m":"Hi {name}, it has been a month since you received your {product}. How is it going? I would love your feedback, and I also have some new Mary Kay arrivals you might enjoy. Let me know!"
   };
 
-  var state={customers:[],products:DEFAULT_PRODUCTS,sales:[],followups:[],leads:[],templates:DEFAULT_TPL,notify:false};
+  var state={customers:[],products:DEFAULT_PRODUCTS,sales:[],followups:[],leads:[],templates:DEFAULT_TPL,notify:false,promo:null};
   function load(){
     try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); state=Object.assign(state,d);}}catch(e){}
     if(!Array.isArray(state.products)||!state.products.length){state.products=DEFAULT_PRODUCTS}
@@ -383,6 +424,14 @@
     if(!Array.isArray(state.followups))state.followups=[];
     if(!Array.isArray(state.leads))state.leads=[];
     if(!state.templates)state.templates=DEFAULT_TPL;
+  if(!state.promo||!state.promo.title||!Array.isArray(state.promo.lines)){state.promo={title:"October 2026 \u2014 This Month's Offers",lines:[
+    "Limited-Edition \u00b7 Pretty in Pink Lipstick collection",
+    "Limited-Edition \u00b7 Illuminating Highlighter (Golden Glow)",
+    "Limited-Edition \u00b7 Eye Shadow Palette (Inner Fire)",
+    "TimeWise\u00ae Miracle Set \u2014 RM 488",
+    "TimeWise\u00ae Moisture Renewing Softener \u2014 RM 99",
+    "TimeWise\u00ae Replenishing Serum C+E \u2014 RM 279"
+  ],note:"Compiled from the official Mary Kay Malaysia site (Oct 2026). Your full monthly consultant promo is shared via your Mary Kay portal \u2014 tap Edit to update this any time."};}
   }
   function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 
@@ -416,7 +465,7 @@
   var toastTimer;
   function toast(msg){var t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove("show")},2400)}
 
-  var VIEW_TITLES={dashboard:["Dashboard","Your Mary Kay business at a glance"],customers:["Clients","Everyone who loves your Mary Kay"],sales:["Sales","Every order and purchase recorded"],leads:["Leads","Prospects & free-sample contacts"],followups:["Follow-ups","Never miss a check-in again"],settings:["Settings","Templates, backup & preferences"]};
+  var VIEW_TITLES={dashboard:["Dashboard","Your Mary Kay business at a glance"],customers:["Clients","Everyone who loves your Mary Kay"],sales:["Sales","Every order and purchase recorded"],products:["Products","Your Mary Kay catalogue & this month's offers"],leads:["Leads","Prospects & free-sample contacts"],followups:["Follow-ups","Never miss a check-in again"],settings:["Settings","Templates, backup & preferences"]};
   var current="dashboard";
   function go(view){
     current=view;location.hash=view;
@@ -426,6 +475,7 @@
     if(view==="dashboard")renderDashboard();
     if(view==="customers")renderCustomers();
     if(view==="sales")renderSales();
+    if(view==="products")renderProducts();
     if(view==="leads")renderLeads();
     if(view==="followups")renderFollowups();
     if(view==="settings")renderSettings();
@@ -657,6 +707,57 @@
     renderSales();renderDashboard();
   });
 
+  /* ================================================================ PRODUCTS */
+  var prodQuery="",editingProduct=null;
+  function renderPromo(){
+    var el=$("#promo-panel");if(!el)return;
+    var p=state.promo||{title:"This Month",lines:[],note:""};
+    el.innerHTML='<div class="hd"><div><h3>'+esc(p.title)+'</h3></div><button class="go" id="promo-edit" style="background:none">Edit</button></div>'+
+      '<div class="promo-list">'+p.lines.map(function(l){return '<div class="promo-line"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/></svg>'+esc(l)+'</div>'}).join("")+'</div>'+
+      (p.note?'<div class="hint" style="margin-top:10px">'+esc(p.note)+'</div>':"");
+    var b=$("#promo-edit");if(b)b.addEventListener("click",function(){
+      $("#promo-title").value=state.promo.title;$("#promo-lines").value=state.promo.lines.join("\n");openModal("#modal-promo");
+    });
+  }
+  function renderProducts(){
+    var list=state.products.slice();
+    if(prodQuery){var q=prodQuery.toLowerCase();list=list.filter(function(p){return (p.name||"").toLowerCase().indexOf(q)>=0||(p.cat||"").toLowerCase().indexOf(q)>=0})}
+    list.sort(function(a,b){return (a.name||"").localeCompare(b.name||"")});
+    var el=$("#prod-list");renderPromo();
+    if(!list.length){el.innerHTML='<div class="empty"><div class="t">'+(state.products.length?"No matches":"No products yet")+'</div><div class="d">Tap "Add Product" to build your catalogue.</div></div>';return}
+    el.innerHTML=list.map(function(p){
+      return '<div class="card"><div class="ct"><div class="ava">'+esc(initials(p.name))+'</div><div class="grow"><div class="cn">'+esc(p.name)+'</div><div class="cp">'+esc(p.cat||"Mary Kay")+'</div></div></div>'+
+        '<div class="mini"><div class="m">'+money(p.price)+'</div><div class="d">'+(p.tag?esc(p.tag):"suggested retail")+'</div></div>'+
+        '<div class="foot"><button class="btn btn-soft btn-sm" data-p-edit="'+esc(p.id)+'">Edit</button><button class="btn btn-danger btn-sm" data-p-del="'+esc(p.id)+'">Delete</button></div></div>';
+    }).join("");
+  }
+  function openProductModal(id){
+    editingProduct=id||null;
+    var p=id?state.products.find(function(x){return x.id===id}):null;
+    $("#prod-modal-title").textContent=p?"Edit Product":"Add Product";
+    $("#p-name").value=p?p.name:"";$("#p-price").value=p?p.price:"";
+    openModal("#modal-product");
+  }
+  $("#prod-add").addEventListener("click",function(){openProductModal(null)});
+  $("#prod-list").addEventListener("click",function(e){
+    var ed=e.target.closest("[data-p-edit]"),dl=e.target.closest("[data-p-del]");
+    if(ed){openProductModal(ed.dataset.pEdit);return}
+    if(dl){state.products=state.products.filter(function(x){return x.id!==dl.dataset.pDel});save();renderProducts();toast("Product removed")}
+  });
+  $("#prod-save").addEventListener("click",function(){
+    var name=$("#p-name").value.trim(),price=parseFloat($("#p-price").value);
+    if(!name){toast("Enter a product name");return}
+    if(!(price>=0)){toast("Enter a valid price");return}
+    if(editingProduct){var p=state.products.find(function(x){return x.id===editingProduct});if(p){p.name=name;p.price=price}}
+    else state.products.push({id:uid(),name:name,cat:"Mary Kay",price:price,tag:""});
+    save();closeModals();renderProducts();toast(editingProduct?"Product updated":"Product added");
+  });
+  $("#promo-save").addEventListener("click",function(){
+    state.promo={title:($("#promo-title").value.trim()||"This Month's Offers"),lines:$("#promo-lines").value.split("\n").map(function(x){return x.trim()}).filter(Boolean),note:"You can update these offers any time from the Products page."};
+    save();closeModals();renderPromo();toast("Offers updated");
+  });
+  $("#prod-search").addEventListener("input",function(){prodQuery=this.value;renderProducts()});
+
   /* ================================================================ LEADS */
   var LEAD_STATUS={
     new:{label:"New Lead"},sample:{label:"Sample Sent"},delivered:{label:"Sample Delivered"},followup:{label:"Follow-up Needed"},converted:{label:"Converted to Client"},lost:{label:"Not Interested"}
@@ -814,7 +915,7 @@
   };
 
   /* ================================================================ INIT */
-  $("#vmark").textContent="v2.2";
+  $("#vmark").textContent="v2.3";
   load();
   var route=location.hash.replace("#","");
   go(route&&VIEW_TITLES[route]?route:"dashboard");
