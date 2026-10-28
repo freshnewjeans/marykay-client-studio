@@ -163,6 +163,11 @@
   .card .cp{font-size:12px; color:var(--muted); margin-top:2px}
   .tag{display:inline-block; font-size:10.5px; font-weight:600; border-radius:20px; padding:2px 9px; margin:8px 0 0; background:var(--pink-soft); color:var(--pink-deep)}
   .tag.gold{background:#FCF1DC; color:#B97810}.tag.green{background:#E3F6EE; color:#1e9e6c}.tag.blue{background:#EAF1FD; color:#3366c9}
+  .card .bday{display:flex; align-items:center; gap:7px; margin-top:10px; font-size:12.5px; color:var(--muted); font-weight:500}
+  .card .bday svg{color:var(--pink-deep); flex-shrink:0}
+  .card .bday.soon{color:#B97810}
+  .card .bday.soon svg{color:#E8A13C}
+  .card .bday em{font-style:normal; font-weight:600}
   .card .foot{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
   .mini{margin-left:auto; text-align:right}
   .mini .m{font-size:12.5px; font-weight:600; color:var(--pink-deep)}
@@ -300,7 +305,7 @@
         Settings
       </button>
     </nav>
-    <div class="foot">Designed &amp; Created by<br>Kevin Lim Fung Yen<br><span style="opacity:.72">v1.9</span></div>
+    <div class="foot">Designed &amp; Created by<br>Kevin Lim Fung Yen<br><span style="opacity:.72">v2.0</span></div>
   </aside>
 
   <!-- ===== Main ===== -->
@@ -422,7 +427,8 @@
     <div class="mt"><h3 id="cus-modal-title">Add Client</h3><button class="x" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <div class="field"><label>Full name</label><input id="c-name" placeholder="e.g. Aisyah Rahimi"></div>
     <div class="field"><label>WhatsApp / phone number</label><input id="c-phone" placeholder="601234567890"></div>
-    <div class="field"><label>Notes (skin type, preferences, birthday...)</label><textarea id="c-note" placeholder="Oily skin, loves moisturiser, birthday in June..."></textarea>
+    <div class="field"><label>Birthday</label><input id="c-birthday" type="date"></div>
+    <div class="field"><label>Notes (skin type, preferences...)</label><textarea id="c-note" placeholder="Oily skin, loves moisturiser..."></textarea>
     <div class="field"><label>Client status</label>
       <select id="c-tag">
         <option value="new">New</option>
@@ -549,6 +555,18 @@
     function customerTotals(id){
       var tot=0,count=0; state.sales.forEach(function(s){if(s.customerId===id){tot+= saleTotal(s);count++}});
       return {tot:tot,count:count};
+    }
+    function birthdayInfo(c){
+      if(!c||!c.birthday)return null;
+      var b=c.birthday.split("-");if(b.length!==3)return null;
+      var mon=parseInt(b[1],10),day=parseInt(b[2],10);
+      if(!(mon>=1&&mon<=12&&day>=1&&day<=31))return null;
+      var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      var now=new Date(),t0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+      var thisY=new Date(now.getFullYear(),mon-1,day);
+      var next=thisY;if(thisY<t0)next=new Date(now.getFullYear()+1,mon-1,day);
+      var days=Math.round((next-t0)/86400000);
+      return {label:day+" "+months[mon-1],days:days,upcoming:days>=0&&days<=14,today:days===0};
     }
 
     /* ----- follow-up engine ----- */
@@ -705,8 +723,10 @@
         var st=customerTotals(c.id);
         var tag=mapTag(c.tag);
         var wa=waLink(c.phone);
+        var bi=birthdayInfo(c);
+        var bday=bi?('<div class="bday'+(bi.upcoming?' soon':'')+'"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16h16"/><path d="M12 8v4M9 8a1.5 1.5 0 1 0 0-3c.8 0 1.5.7 1.5 1.5S9.8 8 9 8zM15 8a1.5 1.5 0 1 0 0-3c-.8 0-1.5.7-1.5 1.5S15.2 8 15 8z"/></svg><span>'+(bi.today?'Birthday today!':'Birthday '+bi.label+(bi.upcoming?' · <em>in '+bi.days+' day'+(bi.days===1?"":"s")+'</em>':''))+'</span></div>'):"";
         return '<div class="card"><div class="ct"><div class="ava">'+esc(initials(c.name))+'</div><div class="grow"><div class="cn">'+esc(c.name)+'</div><div class="cp">'+(c.phone?esc(c.phone):"no phone")+'</div></div></div>'+
-          (c.tag?tag:"")+'<div class="mini"><div class="m">'+money(st.tot)+'</div><div class="d">'+st.count+' purchase'+(st.count===1?"":"s")+'</div></div>'+
+          bday+(c.tag?tag:"")+'<div class="mini"><div class="m">'+money(st.tot)+'</div><div class="d">'+st.count+' purchase'+(st.count===1?"":"s")+'</div></div>'+
           (c.note?'<div class="cp" style="margin-top:8px">'+esc(c.note)+'</div>':"")+
           '<div class="foot"><button class="btn btn-soft btn-sm" data-cus-wa="'+esc(c.id)+'">WhatsApp</button><button class="btn btn-ghost btn-sm" data-cus-edit="'+esc(c.id)+'">Edit</button><button class="btn btn-danger btn-sm" data-cus-del="'+esc(c.id)+'">Delete</button></div></div>';
       }).join("");
@@ -726,11 +746,11 @@
     var cusEditId=null;
     function openCustomerModal(id){cusEditId=id;var c=id?state.customers.find(function(x){return x.id===id}):null;
       $("#cus-modal-title").textContent=c?"Edit Client":"Add Client";
-      $("#c-name").value=c?c.name:"";$("#c-phone").value=c?c.phone:"";$("#c-note").value=c?c.note:"";$("#c-tag").value=c?c.tag:"new";
+      $("#c-name").value=c?c.name:"";$("#c-phone").value=c?c.phone:"";$("#c-birthday").value=c?(c.birthday||""):"";$("#c-note").value=c?c.note:"";$("#c-tag").value=c?c.tag:"new";
       openModal("#modal-customer");}
     $("#cus-save").addEventListener("click",function(){
       var name=$("#c-name").value.trim(); if(!name){toast("Please enter a name");return}
-      var data={name:name,phone:$("#c-phone").value.trim(),note:$("#c-note").value.trim(),tag:$("#c-tag").value};
+      var data={name:name,phone:$("#c-phone").value.trim(),birthday:$("#c-birthday").value||"",note:$("#c-note").value.trim(),tag:$("#c-tag").value};
       if(cusEditId){var c=state.customers.find(function(x){return x.id===cusEditId});Object.assign(c,data);toast("Client updated")}
       else{state.customers.push(Object.assign({id:uid(),created:todayStr()},data));toast("Client added")}
       save();closeModals();renderCustomers();updateBanner();
