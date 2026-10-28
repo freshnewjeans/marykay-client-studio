@@ -205,6 +205,12 @@
     background:rgba(255,255,255,.85); outline:none; transition:.15s}
   .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--pink); box-shadow:0 0 0 3px rgba(232,67,143,.16)}
   .field textarea{min-height:72px; resize:vertical}
+  .line{display:flex; gap:8px; align-items:center; margin-bottom:8px}
+  .line .ln-p{flex:1; min-width:0}
+  .line .ln-q{width:70px}
+  .line .ln-price{width:96px}
+  .line .ln-rm{flex-shrink:0; width:34px; height:34px; border-radius:10px; display:grid; place-items:center; color:var(--muted); background:var(--pink-soft)}
+  .line .ln-rm:hover{color:var(--red); background:#FBEAEA}
   .two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
   .modal .actions{display:flex; gap:10px; margin-top:20px}
   .hint{font-size:11.5px; color:var(--muted); margin-top:6px}
@@ -289,7 +295,7 @@
         Settings
       </button>
     </nav>
-    <div class="foot">Designed &amp; Created by<br>Kevin Lim Fung Yen<br><span style="opacity:.72">v1.7</span></div>
+    <div class="foot">Designed &amp; Created by<br>Kevin Lim Fung Yen<br><span style="opacity:.72">v1.8</span></div>
   </aside>
 
   <!-- ===== Main ===== -->
@@ -415,11 +421,12 @@
   <div class="box">
     <div class="mt"><h3 id="sale-modal-title">Record a Sale</h3><button class="x" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <div class="field"><label>Client</label><select id="s-customer"></select></div>
-    <div class="field"><label>Product</label><select id="s-product"></select></div>
-    <div class="two">
-      <div class="field"><label>Quantity</label><input id="s-qty" type="number" min="1" value="1"></div>
-      <div class="field"><label>Unit price (RM)</label><input id="s-price" type="number" min="0" step="0.01"></div>
+    <div class="field">
+      <label>Products (add as many as needed)</label>
+      <div id="s-lines"></div>
+      <button type="button" class="btn btn-soft btn-sm" id="s-addline" style="margin-top:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add another product</button>
     </div>
+    <div class="hint" id="s-total-hint"></div>
     <div class="two">
       <div class="field"><label>Date sold</label><input id="s-sold" type="date"></div>
       <div class="field"><label>Date product received</label><input id="s-received" type="date"></div>
@@ -507,7 +514,7 @@
       var base=sale.dateReceived||sale.dateSold||todayStr();
       [["1w",7],["2w",14],["1m",30]].forEach(function(p){
         state.followups.push({id:uid(),saleId:sale.id,customerId:sale.customerId,customerName:sale.customerName,
-          productName:sale.productName,phase:p[0],dueDate:dateAdd(base,p[1]),status:"pending"});
+          productName:saleSummary(sale),phase:p[0],dueDate:dateAdd(base,p[1]),status:"pending"});
       });
     }
     function fuStatus(f){if(f.status==="done")return "done";return daysBetween(todayStr(),f.dueDate)<0?"overdue":"pending"}
@@ -595,7 +602,7 @@
       var el=$("#dash-sales");
       if(!list.length){el.innerHTML='<div class="empty"><div class="t">No sales yet</div><div class="d">Record your first sale to start building the story.</div></div>';return}
       el.innerHTML=list.map(function(s){
-        return '<div class="row-card"><div class="grow"><div class="t">'+esc(customerName(s.customerId))+'</div><div class="s">'+esc(s.productName)+' × '+s.qty+' · '+esc(s.dateSold||s.dateReceived)+'</div></div><span class="amt">'+money(Number(s.price)*Number(s.qty))+'</span></div>';
+        return '<div class="row-card"><div class="grow"><div class="t">'+esc(customerName(s.customerId))+'</div><div class="s">'+esc(saleSummary(s))+' · '+esc(s.dateSold||s.dateReceived)+'</div></div><span class="amt">'+money(saleTotal(s))+'</span></div>';
       }).join("");
     }
 
@@ -610,7 +617,7 @@
         var ds=s.dateSold||s.dateReceived; if(!ds)return;
         var p=ds.slice(0,7); var m=new Date(ds+"T00:00:00");
         var diff=(now.getFullYear()-m.getFullYear())*12+(now.getMonth()-m.getMonth());
-        if(diff>=0&&diff<=5){data[5-diff]+= Number(s.price)*Number(s.qty)}
+        if(diff>=0&&diff<=5){data[5-diff]+= saleTotal(s)}
       });
       var ec = (window.echarts) ? window.echarts : null;
       if(!ec){return}
@@ -624,7 +631,7 @@
         series:[{name:"Revenue",type:"bar",data:data,itemStyle:{borderRadius:[8,8,0,0],color:new ec.graphic.LinearGradient(0,0,0,1,[{offset:0,color:"#F06AA4"},{offset:1,color:"#C2185B"}])},barWidth:"52%"}]
       });
       // top products
-      var agg={}; state.sales.forEach(function(s){agg[s.productName]=(agg[s.productName]||0)+Number(s.price)*Number(s.qty)});
+      var agg={}; state.sales.forEach(function(s){saleLines(s).forEach(function(l){agg[l.productName]=(agg[l.productName]||0)+Number(l.price)*Number(l.qty)})});
       var top=Object.keys(agg).map(function(k){return {name:k,v:agg[k]}}).sort(function(a,b){return b.v-a.v}).slice(0,5);
       if(chartTop)chartTop.dispose();
       chartTop=ec.init($("#chart-top"));
@@ -688,17 +695,22 @@
 
     /* ================================================================ SALES */
     var saleQuery="",saleFilter="all";
+    function saleLines(s){if(s.lines&&s.lines.length)return s.lines;if(s.productName||s.productId)return [{productId:s.productId,productName:s.productName||productName(s.productId),qty:s.qty||1,price:s.price||0}];return []}
+    function saleTotal(s){return saleLines(s).reduce(function(a,l){return a+Number(l.price)*Number(l.qty)},0)}
+    function saleSummary(s){var ls=saleLines(s);if(!ls.length)return "";if(ls.length===1)return ls[0].productName;return ls[0].productName+" & "+(ls.length-1)+" more"}
+
     function renderSales(){
       var list=state.sales.slice();
       if(saleFilter==="week"){var w=dateAdd(todayStr(),-7);list=list.filter(function(s){return (s.dateSold||s.dateReceived||"")>=w})}
       if(saleFilter==="month"){list=list.filter(function(s){return (s.dateSold||s.dateReceived||"").indexOf(todayStr().slice(0,7))===0})}
-      if(saleQuery){var q=saleQuery.toLowerCase();list=list.filter(function(s){return (s.productName||"").toLowerCase().indexOf(q)>=0||customerName(s.customerId).toLowerCase().indexOf(q)>=0})}
+      if(saleQuery){var q=saleQuery.toLowerCase();list=list.filter(function(s){return saleLines(s).some(function(l){return (l.productName||"").toLowerCase().indexOf(q)>=0})||customerName(s.customerId).toLowerCase().indexOf(q)>=0})}
       list.sort(function(a,b){return (b.dateSold||"")<(a.dateSold||"")?-1:1});
       var el=$("#sale-list");
       if(!state.sales.length){el.innerHTML='<div class="empty"><div class="t">No sales yet</div><div class="d">Tap "New Sale" to record your first order.</div></div>';return}
       if(!list.length){el.innerHTML='<div class="empty"><div class="t">Nothing here</div><div class="d">Try a different filter or search.</div></div>';return}
       el.innerHTML=list.map(function(s){
-        return '<div class="row-card"><div class="grow"><div class="t">'+esc(customerName(s.customerId))+'</div><div class="s">'+esc(s.productName)+' × '+s.qty+' · '+(s.dateSold||s.dateReceived)+'</div></div><span class="amt">'+money(Number(s.price)*Number(s.qty))+'</span><button class="btn btn-ghost btn-sm" data-sale-del="'+esc(s.id)+'">Delete</button></div>';
+        var ls=saleLines(s);var n=ls.length;
+        return '<div class="row-card"><div class="grow"><div class="t">'+esc(customerName(s.customerId))+'</div><div class="s">'+esc(saleSummary(s))+' <span class="pill p">'+n+' item'+(n>1?"s":"")+'</span> · '+(s.dateSold||s.dateReceived)+'</div></div><span class="amt">'+money(saleTotal(s))+'</span><button class="btn btn-ghost btn-sm" data-sale-del="'+esc(s.id)+'">Delete</button></div>';
       }).join("");
     }
     $("#sale-search").addEventListener("input",function(){saleQuery=this.value;renderSales()});
@@ -708,28 +720,72 @@
     $("#sale-list").addEventListener("click",function(e){var t=e.target;if(t.dataset.saleDel){var s=state.sales.find(function(x){return x.id===t.dataset.saleDel});if(s&&confirm("Delete this sale? Its follow-up reminders will also be removed.")){state.sales=state.sales.filter(function(x){return x.id!==t.dataset.saleDel});state.followups=state.followups.filter(function(f){return f.saleId!==t.dataset.saleDel});save();renderSales();updateBanner()}}});
 
     $("#sale-add").addEventListener("click",function(){openSaleModal()});
-    function fillSaleSelects(){
-      var cu=$("#s-customer"),pu=$("#s-product");
-      cu.innerHTML=state.customers.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join("")||'<option value="">No clients yet — add one first</option>';
-      pu.innerHTML=state.products.map(function(p){return '<option value="'+esc(p.id)+'" data-price="'+p.price+'">'+esc(p.name)+'</option>'}).join("");
-      if(state.products.length){var sel=$("#s-product option[data-price]");if(sel)$("#s-price").value=sel.dataset.price}
+    var saleLineItems=[];
+    function productOptions(selected){
+      return state.products.map(function(p){return '<option value="'+esc(p.id)+'" data-price="'+p.price+'"'+(p.id===selected?" selected":"")+'>'+esc(p.name)+'</option>'}).join("");
+    }
+    function renderSaleLines(){
+      if(!saleLineItems.length){saleLineItems=[{pid:state.products.length?state.products[0].id:"",qty:1,price:state.products.length?state.products[0].price:0}]}
+      $("#s-lines").innerHTML=saleLineItems.map(function(li,i){
+        return '<div class="line" data-i="'+i+'">'+
+          '<select class="ln-p" aria-label="Product">'+(state.products.length?productOptions(li.pid):'<option value="">No products</option>')+'</select>'+
+          '<input class="ln-q" type="number" min="1" value="'+li.qty+'" aria-label="Quantity">'+
+          '<input class="ln-price" type="number" min="0" step="0.01" value="'+li.price+'" aria-label="Unit price">'+
+          '<button type="button" class="ln-rm" title="Remove this product"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'+
+        '</div>';
+      }).join("");
+      updateSaleTotal();
+    }
+    function updateSaleTotal(){
+      var total=0;
+      $$("#s-lines .line").forEach(function(line){
+        var q=parseFloat(line.querySelector(".ln-q").value);q=isNaN(q)?0:q;
+        var p=parseFloat(line.querySelector(".ln-price").value);p=isNaN(p)?0:p;
+        total+=q*p;
+      });
+      $("#s-total-hint").textContent=total>0?("Total: "+money(total)+" · Saving creates 1-week, 2-week and 1-month follow-ups."):"Saving creates 1-week, 2-week and 1-month follow-up reminders.";
     }
     function openSaleModal(){
-      if(!state.customers.length){toast("Add a client first");go("customers");return}
-      fillSaleSelects();
-      $("#s-qty").value=1;$("#s-sold").value=todayStr();$("#s-received").value=todayStr();
+      if(!state.customers.length){toast("Add a client first");openCustomerModal(null);return}
+      $("#s-customer").innerHTML=state.customers.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join("");
+      saleLineItems=[{pid:state.products.length?state.products[0].id:"",qty:1,price:state.products.length?state.products[0].price:0}];
+      $("#s-sold").value=todayStr();$("#s-received").value=todayStr();
       $("#sale-modal-title").textContent="Record a Sale";
+      renderSaleLines();
       openModal("#modal-sale");
     }
-    $("#s-product").addEventListener("change",function(){var o=this.options[this.selectedIndex];if(o&&o.dataset.price!==undefined)$("#s-price").value=o.dataset.price});
+    $("#s-lines").addEventListener("change",function(e){
+      var line=e.target.closest(".line");if(!line)return;
+      if(e.target.classList.contains("ln-p")){
+        var opt=e.target.options[e.target.selectedIndex];
+        var priceInput=line.querySelector(".ln-price");
+        if(opt&&opt.dataset.price!==undefined)priceInput.value=opt.dataset.price;
+      }
+      updateSaleTotal();
+    });
+    $("#s-lines").addEventListener("input",function(e){if(e.target.classList.contains("ln-q")||e.target.classList.contains("ln-price"))updateSaleTotal()});
+    $("#s-lines").addEventListener("click",function(e){
+      var rm=e.target.closest(".ln-rm");if(!rm)return;
+      var line=rm.closest(".line");var i=parseInt(line.dataset.i,10);
+      if(saleLineItems.length>1){saleLineItems.splice(i,1);renderSaleLines()}else{toast("Need at least one product")}
+    });
+    $("#s-addline").addEventListener("click",function(){
+      saleLineItems.push({pid:state.products.length?state.products[0].id:"",qty:1,price:state.products.length?state.products[0].price:0});
+      renderSaleLines();
+    });
     $("#sale-save").addEventListener("click",function(){
       var cid=$("#s-customer").value; if(!cid){toast("Add a client first");return}
-      var pid=$("#s-product").value; if(!pid){toast("Add a product first");return}
-      var qty=Math.max(1,parseInt($("#s-qty").value||"1",10));
-      var price=parseFloat($("#s-price").value); if(isNaN(price)||price<0){toast("Enter a valid price");return}
+      var lines=[];
+      $$("#s-lines .line").forEach(function(line){
+        var pid=line.querySelector(".ln-p").value;if(!pid)return;
+        var qty=Math.max(1,parseInt(line.querySelector(".ln-q").value||"1",10));
+        var price=parseFloat(line.querySelector(".ln-price").value);if(isNaN(price)||price<0)price=0;
+        lines.push({productId:pid,productName:productName(pid)||"Product",qty:qty,price:price});
+      });
+      if(!lines.length){toast("Add at least one product");return}
       var dateSold=$("#s-sold").value||todayStr();
       var dateReceived=$("#s-received").value||dateSold;
-      var sale={id:uid(),customerId:cid,customerName:customerName(cid),productId:pid,productName:productName(pid),qty:qty,price:price,dateSold:dateSold,dateReceived:dateReceived};
+      var sale={id:uid(),customerId:cid,customerName:customerName(cid),lines:lines,dateSold:dateSold,dateReceived:dateReceived};
       state.sales.push(sale);makeFollowups(sale);save();closeModals();
       toast("Sale recorded + 3 follow-ups scheduled");
       renderSales();renderDashboard();updateBanner();
