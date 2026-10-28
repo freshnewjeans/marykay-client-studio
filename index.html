@@ -133,7 +133,7 @@
   .modal{position:fixed; top:0; left:0; right:0; bottom:0; z-index:100; display:none; align-items:flex-end; justify-content:center; padding:0}
   .modal.open{display:flex}
   .modal .back{position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(68,42,54,.42)}
-  .modal .box{position:relative; width:100%; max-width:560px; background:#fff; border-radius:22px 22px 0 0; padding:22px 22px 26px; max-height:92vh; overflow:auto; animation:sheet .24s ease}
+  .modal .box{position:relative; width:100%; max-width:560px; background:#fff; border-radius:22px 22px 0 0; padding:22px 22px 26px; max-height:92vh; overflow:auto; opacity:1}
   .mt{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px}
   .mt h3{font-size:17px; font-weight:700}
   .x{width:32px; height:32px; border-radius:10px; display:grid; place-items:center; color:var(--muted); background:var(--pink-soft)}
@@ -438,8 +438,18 @@
   }
 
   /* ----- modals ----- */
-  function openModal(sel){$(sel).classList.add("open")}
-  function closeModals(){$$(".modal").forEach(function(m){m.classList.remove("open")})}
+  function openModal(sel){
+    var el=$(sel);
+    el.classList.add("open");
+    el.style.display="flex";   // force layout directly (no reliance on CSS cascade)
+    void el.offsetHeight;      // force the browser to commit layout & paint immediately
+  }
+  function closeModals(){$$(".modal").forEach(function(m){m.classList.remove("open");m.style.display="";})}
+  /* Guarantee every popup is a direct, sibling child of <body> (never nested inside a hidden parent).
+     If the HTML parser ever nests them, this re-parents so none is trapped under a display:none ancestor. */
+  [].slice.call($$(".modal")).forEach(function(m){
+    if(m.parentNode!==document.body) document.body.appendChild(m);
+  });
   $$(".modal").forEach(function(m){
     m.querySelector(".back").addEventListener("click",closeModals);
     m.querySelectorAll("[data-close]").forEach(function(b){b.addEventListener("click",closeModals)});
@@ -810,7 +820,7 @@
   };
 
   /* ================================================================ INIT */
-  $("#vmark").textContent="v2.1";
+  $("#vmark").textContent="v2.2";
   load();
   var route=location.hash.replace("#","");
   go(route&&VIEW_TITLES[route]?route:"dashboard");
