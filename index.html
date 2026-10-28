@@ -152,6 +152,8 @@
   .card{background:var(--glass); backdrop-filter:blur(16px); border:1px solid var(--line); border-radius:var(--r);
     padding:16px; box-shadow:var(--shadow-sm); transition:.16s; position:relative}
   .card:hover{transform:translateY(-2px); box-shadow:var(--shadow)}
+  .card.prod{cursor:pointer}
+  .card.prod .mini .d{font-size:10px; color:var(--mute-2); margin-top:1px}
   .card .ava{width:44px; height:44px; border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:600;
     font-size:17px; background:linear-gradient(135deg,var(--pink-2),var(--pink-deep)); flex-shrink:0}
   .card .ct{display:flex; align-items:center; gap:12px}
@@ -797,17 +799,20 @@
       var el=$("#prod-list");
       if(!list.length){el.innerHTML='<div class="empty"><div class="t">No products'+(q?" match":" yet")+'</div><div class="d">Add products to your Mary Kay catalogue.</div></div>';return}
       el.innerHTML=list.map(function(p){
-        return '<div class="card"><div class="ct"><div class="ava" style="font-size:13px">'+esc((p.cat||"P").slice(0,2).toUpperCase())+'</div><div class="grow"><div class="cn">'+esc(p.name)+'</div><div class="cp">'+esc(p.cat||"Other")+'</div></div></div>'+
+        return '<div class="card prod" data-prod-edit="'+esc(p.id)+'"><div class="ct"><div class="ava" style="font-size:13px">'+esc((p.cat||"P").slice(0,2).toUpperCase())+'</div><div class="grow"><div class="cn">'+esc(p.name)+'</div><div class="cp">'+esc(p.cat||"Other")+'</div></div></div>'+
           (p.tag?'<span class="tag">'+esc(p.tag)+'</span>':"")+
-          '<div class="mini"><div class="m">'+money(p.price)+'</div></div>'+
+          '<div class="mini"><div class="m">'+money(p.price)+'</div><div class="d">tap to edit</div></div>'+
           '<div class="foot"><button class="btn btn-ghost btn-sm" data-prod-edit="'+esc(p.id)+'">Edit</button><button class="btn btn-danger btn-sm" data-prod-del="'+esc(p.id)+'">Delete</button></div></div>';
       }).join("");
     }
     $("#prod-search").addEventListener("input",function(){prodQuery=this.value;renderProducts()});
     $("#prod-add").addEventListener("click",function(){openProductModal(null)});
-    $("#prod-list").addEventListener("click",function(e){var t=e.target;
-      if(t.dataset.prodEdit){openProductModal(t.dataset.prodEdit)}
-      else if(t.dataset.prodDel){var p=state.products.find(function(x){return x.id===t.dataset.prodDel});if(p&&confirm("Delete "+p.name+"?")){state.products=state.products.filter(function(x){return x.id!==t.dataset.prodDel});save();renderProducts()}}
+    $("#prod-list").addEventListener("click",function(e){
+      var t=e.target;
+      var del=t.closest("[data-prod-del]");
+      if(del){var pid=del.dataset.prodDel;var p=state.products.find(function(x){return x.id===pid});if(p&&confirm("Delete "+p.name+"?")){state.products=state.products.filter(function(x){return x.id!==pid});save();renderProducts();toast("Product deleted")}return}
+      var edit=t.closest("[data-prod-edit]");
+      if(edit){openProductModal(edit.dataset.prodEdit)}
     });
     var prodEditId=null;
     function openProductModal(id){prodEditId=id;var p=id?state.products.find(function(x){return x.id===id}):null;
