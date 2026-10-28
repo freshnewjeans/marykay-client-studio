@@ -100,6 +100,8 @@
   .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:16px; box-shadow:var(--shadow); display:flex; flex-direction:column}
   .card .ct{display:flex; gap:12px; align-items:center}
   .ava{width:44px; height:44px; border-radius:14px; background:linear-gradient(135deg,var(--pink),var(--pink-deep)); color:#fff; font-weight:700; font-size:16px; display:grid; place-items:center; flex-shrink:0}
+  .pimg{aspect-ratio:1; background:#fff; border:1px solid var(--line); border-radius:14px; display:grid; place-items:center; overflow:hidden; margin-bottom:12px}
+  .pimg img{width:100%; height:100%; object-fit:contain; display:block}
   .card .cn{font-size:15px; font-weight:600}
   .card .cp{font-size:12.5px; color:var(--muted); margin-top:1px}
   .card .ct.hist-open{cursor:pointer; border-radius:12px; transition:background .15s}
@@ -422,27 +424,27 @@
   var KEY="mk_crm_v2";
   var PHASES={"1w":"1-Week Check-in","2w":"2-Week Check-in","1m":"1-Month Check-in"};
   var DEFAULT_PRODUCTS=[
-    {id:"a1",name:"Mary Kay\u00ae Mattifying Cleanser 127g",cat:"Skincare",price:85,tag:""},
-    {id:"a2",name:"Mary Kay\u00ae Hydrating Moisturizer 85g",cat:"Skincare",price:85,tag:""},
-    {id:"a3",name:"Mary Kay\u00ae Balancing Toner 147ml",cat:"Skincare",price:85,tag:""},
-    {id:"a4",name:"Mary Kay\u00ae Exfoliating Scrub 88ml",cat:"Skincare",price:85,tag:""},
-    {id:"a5",name:"TimeWise\u00ae 4-in-1 Cleanser 127g",cat:"Skincare",price:119,tag:"Bestseller"},
-    {id:"a6",name:"TimeWise\u00ae Eye Cream 14g",cat:"Skincare",price:135,tag:""},
-    {id:"a7",name:"TimeWise\u00ae Antioxidant Moisturizer 88ml",cat:"Skincare",price:145,tag:""},
-    {id:"a8",name:"TimeWise\u00ae Replenishing Serum C+E 44ml",cat:"Skincare",price:279,tag:"Premium"},
-    {id:"a9",name:"TimeWise\u00ae Repair Volu-Firm Day Cream SPF30 48g",cat:"Skincare",price:249,tag:"Premium"},
-    {id:"a10",name:"TimeWise\u00ae Miracle Set (Normal/Dry)",cat:"Skincare",price:488,tag:"Set"},
-    {id:"a11",name:"Mary Kay\u00ae Melt-In Cleansing Balm 50ml",cat:"Skincare",price:139,tag:""},
-    {id:"a12",name:"Mary Kay\u00ae Intense Moisturizing Cream 51g",cat:"Skincare",price:159,tag:""},
-    {id:"a13",name:"Mary Kay Clinical Solutions\u2122 PHA+AHA Resurfacer 15ml",cat:"Skincare",price:139,tag:""},
-    {id:"a14",name:"Mary Kay Snail Gel Face Patches 60pcs",cat:"Skincare",price:158,tag:""},
-    {id:"a15",name:"TimeWise\u00ae Matte 3D Foundation",cat:"Makeup",price:85,tag:"Bestseller"},
-    {id:"a16",name:"Mary Kay\u00ae Gel Semi-Matte Lipstick 3.6g",cat:"Makeup",price:55,tag:""},
-    {id:"a17",name:"Mary Kay\u00ae Supreme Hydrating Lipstick 3.2g",cat:"Makeup",price:65,tag:""},
-    {id:"a18",name:"Mary Kay Lash Love Fanorama\u2122 Mascara 8g",cat:"Makeup",price:59,tag:""},
-    {id:"a19",name:"Mary Kay Great Heights Waterproof Mascara 8g",cat:"Makeup",price:75,tag:""},
-    {id:"a20",name:"Mary Kay\u00ae Waterproof Eyeliner 0.3g",cat:"Makeup",price:39,tag:""},
-    {id:"a21",name:"Mary Kay\u00ae Body Care Gift Set \u2013 Coconut Mousse",cat:"Body & Bath",price:69,tag:""}
+    {id:"a1",name:"Mary Kay\u00ae Mattifying Cleanser 127g",cat:"Skincare",price:85,tag:"",img:"assets/prod-mattifying-cleanser.jpg"},
+    {id:"a2",name:"Mary Kay\u00ae Hydrating Moisturizer 85g",cat:"Skincare",price:85,tag:"",img:"assets/prod-hydrating-moisturizer.jpg"},
+    {id:"a3",name:"Mary Kay\u00ae Balancing Toner 147ml",cat:"Skincare",price:85,tag:"",img:"assets/prod-balancing-toner.jpg"},
+    {id:"a4",name:"Mary Kay\u00ae Exfoliating Scrub 88ml",cat:"Skincare",price:85,tag:"",img:"assets/prod-exfoliating-scrub.jpg"},
+    {id:"a5",name:"TimeWise\u00ae 4-in-1 Cleanser 127g",cat:"Skincare",price:119,tag:"Bestseller",img:"assets/prod-timewise-4in1-cleanser.jpg"},
+    {id:"a6",name:"TimeWise\u00ae Eye Cream 14g",cat:"Skincare",price:135,tag:"",img:"assets/prod-timewise-eye-cream.jpg"},
+    {id:"a7",name:"TimeWise\u00ae Antioxidant Moisturizer 88ml",cat:"Skincare",price:145,tag:"",img:"assets/prod-timewise-antioxidant-moisturizer.jpg"},
+    {id:"a8",name:"TimeWise\u00ae Replenishing Serum C+E 44ml",cat:"Skincare",price:279,tag:"Premium",img:"assets/prod-timewise-serum-ce.jpg"},
+    {id:"a9",name:"TimeWise\u00ae Repair Volu-Firm Day Cream SPF30 48g",cat:"Skincare",price:249,tag:"Premium",img:"assets/prod-timewise-volu-firm-day-cream.jpg"},
+    {id:"a10",name:"TimeWise\u00ae Miracle Set (Normal/Dry)",cat:"Skincare",price:488,tag:"Set",img:"assets/prod-timewise-miracle-set.jpg"},
+    {id:"a11",name:"Mary Kay\u00ae Melt-In Cleansing Balm 50ml",cat:"Skincare",price:139,tag:"",img:"assets/prod-melt-in-cleansing-balm.jpg"},
+    {id:"a12",name:"Mary Kay\u00ae Intense Moisturizing Cream 51g",cat:"Skincare",price:159,tag:"",img:"assets/prod-intense-moisturizing-cream.jpg"},
+    {id:"a13",name:"Mary Kay Clinical Solutions\u2122 PHA+AHA Resurfacer 15ml",cat:"Skincare",price:139,tag:"",img:"assets/prod-clinical-pha-aha-resurfacer.jpg"},
+    {id:"a14",name:"Mary Kay Snail Gel Face Patches 60pcs",cat:"Skincare",price:158,tag:"",img:"assets/prod-snail-gel-face-patches.jpg"},
+    {id:"a15",name:"TimeWise\u00ae Matte 3D Foundation",cat:"Makeup",price:85,tag:"Bestseller",img:"assets/prod-timewise-matte-3d-foundation.jpg"},
+    {id:"a16",name:"Mary Kay\u00ae Gel Semi-Matte Lipstick 3.6g",cat:"Makeup",price:55,tag:"",img:"assets/prod-gel-semi-matte-lipstick.jpg"},
+    {id:"a17",name:"Mary Kay\u00ae Supreme Hydrating Lipstick 3.2g",cat:"Makeup",price:65,tag:"",img:"assets/prod-supreme-hydrating-lipstick.jpg"},
+    {id:"a18",name:"Mary Kay Lash Love Fanorama\u2122 Mascara 8g",cat:"Makeup",price:59,tag:"",img:"assets/prod-lash-love-fanorama-mascara.jpg"},
+    {id:"a19",name:"Mary Kay Great Heights Waterproof Mascara 8g",cat:"Makeup",price:75,tag:"",img:"assets/prod-great-heights-mascara.jpg"},
+    {id:"a20",name:"Mary Kay\u00ae Waterproof Eyeliner 0.3g",cat:"Makeup",price:39,tag:"",img:"assets/prod-waterproof-eyeliner.jpg"},
+    {id:"a21",name:"Mary Kay\u00ae Body Care Gift Set \u2013 Coconut Mousse",cat:"Body & Bath",price:69,tag:"",img:"assets/prod-body-care-coconut-mousse-set.jpg"}
   ];
   var OLD_DEFAULT_IDS=["p1","p2","p3","p4","p5","p6","p7","p8","p9","p10"];
   var DEFAULT_TPL={
@@ -456,6 +458,7 @@
     try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); state=Object.assign(state,d);}}catch(e){}
     if(!Array.isArray(state.products)||!state.products.length){state.products=DEFAULT_PRODUCTS}
     else{var isOld=state.products.length===OLD_DEFAULT_IDS.length&&state.products.every(function(p){return p&&p.id&&OLD_DEFAULT_IDS.indexOf(p.id)>=0});if(isOld)state.products=DEFAULT_PRODUCTS;}
+    state.products.forEach(function(p){if(p&&p.id&&!p.img){var d=DEFAULT_PRODUCTS.find(function(x){return x.id===p.id});if(d&&d.img)p.img=d.img;}});
     if(!Array.isArray(state.customers))state.customers=[];
     if(!Array.isArray(state.sales))state.sales=[];
     if(!Array.isArray(state.followups))state.followups=[];
@@ -808,11 +811,13 @@
   function renderProducts(){
     var list=state.products.slice();
     if(prodQuery){var q=prodQuery.toLowerCase();list=list.filter(function(p){return (p.name||"").toLowerCase().indexOf(q)>=0||(p.cat||"").toLowerCase().indexOf(q)>=0})}
-    list.sort(function(a,b){return (a.name||"").localeCompare(b.name||"")});
+    list.sort(function(a,b){return (a.cat===b.cat)?(a.id<b.id?-1:1):(a.cat<b.cat?-1:1)});
     var el=$("#prod-list");renderPromo();
     if(!list.length){el.innerHTML='<div class="empty"><div class="t">'+(state.products.length?"No matches":"No products yet")+'</div><div class="d">Tap "Add Product" to build your catalogue.</div></div>';return}
     el.innerHTML=list.map(function(p){
-      return '<div class="card"><div class="ct"><div class="ava">'+esc(initials(p.name))+'</div><div class="grow"><div class="cn">'+esc(p.name)+'</div><div class="cp">'+esc(p.cat||"Mary Kay")+'</div></div></div>'+
+      var img=p.img?'<div class="pimg"><img src="'+esc(p.img)+'" alt="'+esc(p.name)+'" loading="lazy"></div>':'';
+      return '<div class="card">'+(img||'<div class="ct"><div class="ava">'+esc(initials(p.name))+'</div></div>')+
+        '<div class="ct"><div class="grow"><div class="cn">'+esc(p.name)+'</div><div class="cp">'+esc(p.cat||"Mary Kay")+'</div></div></div>'+
         '<div class="mini"><div class="m">'+money(p.price)+'</div><div class="d">'+(p.tag?esc(p.tag):"suggested retail")+'</div></div>'+
         '<div class="foot"><button class="btn btn-soft btn-sm" data-p-edit="'+esc(p.id)+'">Edit</button><button class="btn btn-danger btn-sm" data-p-del="'+esc(p.id)+'">Delete</button></div></div>';
     }).join("");
@@ -1001,7 +1006,7 @@
   };
 
   /* ================================================================ INIT */
-  $("#vmark").textContent="v2.4";
+  $("#vmark").textContent="v2.5";
   load();
   var route=location.hash.replace("#","");
   go(route&&VIEW_TITLES[route]?route:"dashboard");
