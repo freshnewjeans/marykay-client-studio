@@ -94,6 +94,15 @@
   .promo-list{display:flex; flex-direction:column; gap:9px}
   .promo-line{display:flex; gap:10px; align-items:center; font-size:13.5px; color:#5a3a45}
   .promo-line svg{color:var(--pink-deep); flex-shrink:0}
+  .promo-alert{display:flex; gap:8px; align-items:center; margin-bottom:12px; padding:9px 12px; border-radius:12px; background:#fff3cd; border:1px solid #f7d98b; color:#8a6d1d; font-size:13px; font-weight:600}
+  .promo-alert svg{flex-shrink:0}
+  .pactions{display:flex; gap:14px; align-items:center}
+  .poster-form{display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start}
+  .poster-left{display:flex; flex-direction:column; gap:14px}
+  .poster-right{display:flex; justify-content:center}
+  #po-canvas{width:100%; max-width:340px; height:auto; border-radius:16px; box-shadow:var(--shadow); display:block; background:#ffe0ec}
+  .photopick{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  #po-photo-prev{width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid var(--pink); flex-shrink:0}
   .chart{width:100%; height:260px}
 
   .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
@@ -198,7 +207,7 @@
     .topbar h1{font-size:18px}
     .search input{font-size:16px}
   }
-  @media(max-width:560px){.cards{grid-template-columns:1fr} .two{grid-template-columns:1fr}}
+  @media(max-width:560px){.cards{grid-template-columns:1fr} .two{grid-template-columns:1fr} .poster-form{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -406,6 +415,34 @@
   </div>
 </div>
 
+<div class="modal" id="modal-poster">
+  <div class="back"></div>
+  <div class="box wide">
+    <div class="mt"><h3>Make a Shareable Poster</h3><button class="x" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="poster-form">
+      <div class="poster-left">
+        <div class="field"><label>Poster title</label><input id="po-title" placeholder="e.g. October 2026 Special"></div>
+        <div class="field"><label>Offers (one per line, max 5)</label><textarea id="po-lines" rows="5" placeholder="Limited-Edition Highlighter&#10;TimeWise Miracle Set - RM 488"></textarea></div>
+        <div class="field"><label>Your name</label><input id="po-name" placeholder="Wong Soon Yee"></div>
+        <div class="field"><label>WhatsApp / contact</label><input id="po-phone" placeholder="6012 345 6789"></div>
+        <div class="field"><label>Profile photo</label>
+          <input type="file" id="po-photo" accept="image/*" hidden>
+          <div class="photopick">
+            <img id="po-photo-prev" alt="profile" hidden>
+            <button type="button" class="btn btn-soft btn-sm" id="po-upload">Choose photo</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="po-clearphoto" hidden>Remove</button>
+          </div>
+        </div>
+      </div>
+      <div class="poster-right">
+        <canvas id="po-canvas" width="540" height="675"></canvas>
+      </div>
+    </div>
+    <div class="hint">The poster is a 4:5 image (1080×1350) ready for Facebook / Instagram / TikTok / WhatsApp. Your name &amp; contact are remembered for next time.</div>
+    <div class="actions"><button class="btn btn-ghost grow" data-close>Cancel</button><button class="btn btn-p grow" id="po-download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download Poster</button></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script>
 (function(){
@@ -416,6 +453,9 @@
   function uid(){return "u"+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
   function money(n){return "RM "+Number(n||0).toLocaleString("en-MY",{minimumFractionDigits:2})}
   function todayStr(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
+  var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  function monthKey(d){d=d||new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)}
+  function monthLabel(d){d=d||new Date();return MONTHS[d.getMonth()]+" "+d.getFullYear()}
   function dateAdd(ds,days){var p=ds.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]+days);return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
   function daysBetween(a,b){var x=new Date(a),y=new Date(b);return Math.round((y-x)/86400000)}
   function initials(name){var s=(""+name).trim().split(/\s+/);return ((s[0]&&s[0][0])||"")+((s[1]&&s[1][0])||"")}
@@ -453,7 +493,17 @@
     "1m":"Hi {name}, it has been a month since you received your {product}. How is it going? I would love your feedback, and I also have some new Mary Kay arrivals you might enjoy. Let me know!"
   };
 
-  var state={customers:[],products:DEFAULT_PRODUCTS,sales:[],followups:[],leads:[],templates:DEFAULT_TPL,notify:false,promo:null};
+  var state={customers:[],products:DEFAULT_PRODUCTS,sales:[],followups:[],leads:[],templates:DEFAULT_TPL,notify:false,promo:null,poster:{name:"",phone:"",photo:""}};
+  /* Monthly auto-rollover: whenever the month changes, roll the offers panel forward to the new
+     month and flag that the fresh offer is needed (stale=true). Last month's list stays as reference. */
+  function rollPromoMonth(){
+    var cur=monthKey();
+    if(state.promo.month===cur)return;
+    var hadMonth=!!state.promo.month;
+    state.promo.month=cur;
+    state.promo.title=monthLabel()+" \u2014 This Month's Offers";
+    if(hadMonth)state.promo.stale=true;
+  }
   function load(){
     try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); state=Object.assign(state,d);}}catch(e){}
     if(!Array.isArray(state.products)||!state.products.length){state.products=DEFAULT_PRODUCTS}
@@ -464,14 +514,16 @@
     if(!Array.isArray(state.followups))state.followups=[];
     if(!Array.isArray(state.leads))state.leads=[];
     if(!state.templates)state.templates=DEFAULT_TPL;
-  if(!state.promo||!state.promo.title||!Array.isArray(state.promo.lines)){state.promo={title:"October 2026 \u2014 This Month's Offers",lines:[
+  if(!state.poster)state.poster={name:"",phone:"",photo:""};
+  if(!state.promo||!state.promo.title||!Array.isArray(state.promo.lines)){state.promo={title:monthLabel()+" \u2014 This Month's Offers",lines:[
     "Limited-Edition \u00b7 Pretty in Pink Lipstick collection",
     "Limited-Edition \u00b7 Illuminating Highlighter (Golden Glow)",
     "Limited-Edition \u00b7 Eye Shadow Palette (Inner Fire)",
     "TimeWise\u00ae Miracle Set \u2014 RM 488",
     "TimeWise\u00ae Moisture Renewing Softener \u2014 RM 99",
     "TimeWise\u00ae Replenishing Serum C+E \u2014 RM 279"
-  ],note:"Compiled from the official Mary Kay Malaysia site (Oct 2026). Your full monthly consultant promo is shared via your Mary Kay portal \u2014 tap Edit to update this any time."};}
+  ],note:"Compiled from the official Mary Kay Malaysia site. Your full monthly consultant promo is shared via your Mary Kay portal \u2014 update these offers each month.",month:monthKey(),stale:false};}
+  rollPromoMonth();
   }
   function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 
@@ -800,14 +852,133 @@
   var prodQuery="",editingProduct=null;
   function renderPromo(){
     var el=$("#promo-panel");if(!el)return;
-    var p=state.promo||{title:"This Month",lines:[],note:""};
-    el.innerHTML='<div class="hd"><div><h3>'+esc(p.title)+'</h3></div><button class="go" id="promo-edit" style="background:none">Edit</button></div>'+
+    var p=state.promo||{title:monthLabel()+" \u2014 This Month's Offers",lines:[],note:""};
+    var alertBanner=p.stale?'<div class="promo-alert"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>New month \u2014 tap Update to set this month\'s offers</div>':"";
+    var btnLabel=p.stale?"Update":(p.title.indexOf("Offers")>=0?"Edit":"Edit");
+    el.innerHTML='<div class="hd"><div><h3>'+esc(p.title)+'</h3></div><div class="pactions"><button class="go" id="promo-poster" style="background:none">Make Poster</button><button class="go" id="promo-edit" style="background:none">'+btnLabel+'</button></div></div>'+
+      alertBanner+
       '<div class="promo-list">'+p.lines.map(function(l){return '<div class="promo-line"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/></svg>'+esc(l)+'</div>'}).join("")+'</div>'+
       (p.note?'<div class="hint" style="margin-top:10px">'+esc(p.note)+'</div>':"");
     var b=$("#promo-edit");if(b)b.addEventListener("click",function(){
       $("#promo-title").value=state.promo.title;$("#promo-lines").value=state.promo.lines.join("\n");openModal("#modal-promo");
     });
+    var pbtn=$("#promo-poster");if(pbtn)pbtn.addEventListener("click",function(){openPosterModal()});
   }
+  /* ================================================================ POSTER */
+  var posterImg=null; /* loaded HTMLImageElement for the profile photo */
+  function openPosterModal(){
+    var p=state.promo||{title:monthLabel()+" Special",lines:[]};
+    $("#po-title").value=p.title||"";
+    $("#po-lines").value=(p.lines||[]).join("\n");
+    $("#po-name").value=state.poster.name||"";
+    $("#po-phone").value=state.poster.phone||"";
+    posterImg=null;
+    if(state.poster.photo){posterImg=new Image();posterImg.onload=function(){updatePhotoUI();drawPosterPreview()};posterImg.src=state.poster.photo;}
+    updatePhotoUI();
+    openModal("#modal-poster");
+    drawPosterPreview();
+  }
+  function updatePhotoUI(){
+    var img=$("#po-photo-prev"),rm=$("#po-clearphoto");
+    if(posterImg&&posterImg.complete&&posterImg.naturalWidth>0){img.src=posterImg.src;img.hidden=false;rm.hidden=false;}
+    else{img.hidden=true;rm.hidden=true;}
+  }
+  function drawPosterPreview(){var c=$("#po-canvas");if(c)drawPoster(c)}
+  ["po-title","po-lines","po-name","po-phone"].forEach(function(id){var e=document.getElementById(id);if(e)e.addEventListener("input",drawPosterPreview)});
+  $("#po-upload").addEventListener("click",function(){$("#po-photo").click()});
+  $("#po-clearphoto").addEventListener("click",function(){posterImg=null;state.poster.photo="";save();updatePhotoUI();drawPosterPreview();toast("Photo removed")});
+  $("#po-photo").addEventListener("change",function(e){
+    var f=e.target.files[0];if(!f)return;
+    var rd=new FileReader();
+    rd.onload=function(){
+      var im=new Image();
+      im.onload=function(){
+        var max=400,s=Math.min(1,max/Math.max(im.width,im.height));
+        var c=document.createElement("canvas");c.width=Math.max(1,Math.round(im.width*s));c.height=Math.max(1,Math.round(im.height*s));
+        c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+        state.poster.photo=c.toDataURL("image/jpeg",0.85);
+        posterImg=new Image();posterImg.onload=function(){updatePhotoUI();drawPosterPreview()};posterImg.src=state.poster.photo;
+        save();
+      };
+      im.src=rd.result;
+    };
+    rd.readAsDataURL(f);
+  });
+  function roundRect(g,x,y,w,h,r){r=Math.min(r,w/2,h/2);g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+  function wrapText(g,text,x,y,maxW,lineH){
+    g.textAlign="left";
+    var words=String(text).split(/\s+/),lines=[],cur="";
+    words.forEach(function(w){var t=cur?(cur+" "+w):w;if(g.measureText(t).width>maxW&&cur){lines.push(cur);cur=w}else cur=t});
+    if(cur)lines.push(cur);
+    lines.forEach(function(ln){g.fillText(ln,x,y);y+=lineH});
+    return y;
+  }
+  function drawPoster(c){
+    var title=$("#po-title").value.trim()||"This Month's Special";
+    var lines=$("#po-lines").value.split("\n").map(function(x){return x.trim()}).filter(Boolean).slice(0,5);
+    var name=$("#po-name").value.trim()||"Wong Soon Yee";
+    var phone=$("#po-phone").value.trim();
+    var W=c.width,H=c.height,g=c.getContext("2d");
+    g.clearRect(0,0,W,H);
+    var gr=g.createLinearGradient(0,0,0,H);
+    gr.addColorStop(0,"#fff6fa");gr.addColorStop(.5,"#ffe0ec");gr.addColorStop(1,"#ffc9de");
+    g.fillStyle=gr;g.fillRect(0,0,W,H);
+    g.fillStyle="rgba(255,255,255,.55)";g.beginPath();g.arc(W*.06,H*.08,W*.14,0,7);g.fill();
+    g.fillStyle="rgba(255,255,255,.42)";g.beginPath();g.arc(W*.96,H*.2,W*.17,0,7);g.fill();
+    g.fillStyle="rgba(255,182,209,.5)";g.beginPath();g.arc(W*.9,H*.88,W*.19,0,7);g.fill();
+    g.fillStyle="rgba(255,255,255,.35)";g.beginPath();g.arc(W*.12,H*.8,W*.1,0,7);g.fill();
+    g.fillStyle="#c2477d";g.font="600 "+Math.round(W*.026)+"px system-ui,-apple-system,Segoe UI,sans-serif";g.textAlign="center";
+    g.fillText("MARY KAY\u00ae BEAUTY",W/2,H*.095);
+    var pw=W*.64,ph=H*.066,py=H*.125;
+    g.fillStyle="#e0579d";roundRect(g,W/2-pw/2,py,pw,ph,H*.032);g.fill();
+    g.fillStyle="#fff";g.font="700 "+Math.round(W*.028)+"px system-ui,-apple-system,Segoe UI,sans-serif";
+    g.fillText("THIS MONTH'S SPECIAL",W/2,py+ph*.62);
+    g.fillStyle="#8a2f5b";g.font="800 "+Math.round(W*.048)+"px system-ui,-apple-system,Segoe UI,sans-serif";
+    g.textAlign="center";wrapText(g,title,W/2,H*.235,W*.85,H*.06);
+    var boxY=H*.315,boxH=H*.40;
+    g.fillStyle="rgba(255,255,255,.68)";roundRect(g,W*.07,boxY,W*.86,boxH,H*.03);g.fill();
+    g.strokeStyle="rgba(224,87,157,.5)";g.lineWidth=2;roundRect(g,W*.07,boxY,W*.86,boxH,H*.03);g.stroke();
+    g.fillStyle="#5a2340";g.font="600 "+Math.round(W*.033)+"px system-ui,-apple-system,Segoe UI,sans-serif";
+    var y=boxY+H*.085;
+    lines.forEach(function(ln){
+      g.fillStyle="#e0579d";g.beginPath();g.moveTo(W*.115,y-W*.007);g.lineTo(W*.121,y);g.lineTo(W*.115,y+W*.007);g.lineTo(W*.109,y);g.closePath();g.fill();
+      g.fillStyle="#5a2340";y=wrapText(g,ln,W*.137,y,W*.78,H*.046);
+      y+=H*.03;
+    });
+    if(!lines.length){g.fillStyle="#b46a90";g.font="600 "+Math.round(W*.03)+"px system-ui,sans-serif";g.textAlign="center";g.fillText("Add your offers to preview here",W/2,boxY+boxH*.5);}
+    var ax=W/2,ay=H*.755,r=W*.113;
+    g.save();g.beginPath();g.arc(ax,ay,r,0,7);g.clip();
+    g.fillStyle="#f2d3e0";g.fillRect(ax-r,ay-r,r*2,r*2);
+    if(posterImg&&posterImg.complete&&posterImg.naturalWidth>0){g.drawImage(posterImg,ax-r,ay-r,r*2,r*2);}
+    else{g.fillStyle="#b04680";g.font="700 "+Math.round(W*.1)+"px system-ui,sans-serif";g.textAlign="center";g.fillText(initials(name),ax,ay+W*.035);}
+    g.restore();
+    g.strokeStyle="#fff";g.lineWidth=Math.round(W*.006);g.beginPath();g.arc(ax,ay,r,0,7);g.stroke();
+    g.fillStyle="#7c2649";g.font="800 "+Math.round(W*.042)+"px system-ui,sans-serif";g.textAlign="center";
+    g.fillText(name,ax,H*.898);
+    g.fillStyle="#b04680";g.font="600 "+Math.round(W*.025)+"px system-ui,sans-serif";
+    g.fillText("Mary Kay Beauty Consultant",ax,H*.928);
+    if(phone){g.fillStyle="#8a2f5b";g.font="600 "+Math.round(W*.027)+"px system-ui,sans-serif";g.fillText("WhatsApp  "+phone,ax,H*.956);}
+    g.fillStyle="rgba(199,71,125,.9)";g.font="700 "+Math.round(W*.027)+"px system-ui,sans-serif";
+    g.fillText("Limited time offer \u00b7 this month only",ax,H*.972);
+    g.fillStyle="rgba(122,60,86,.78)";g.font="500 "+Math.round(W*.018)+"px system-ui,sans-serif";
+    g.fillText("Designed & Created by Kevin Lim Fung Yen",ax,H*.994);
+  }
+  $("#po-download").addEventListener("click",function(){
+    var name=$("#po-name").value.trim();
+    state.poster=Object.assign({},state.poster||{},{
+      name:name,
+      phone:$("#po-phone").value.trim(),
+      photo:state.poster.photo||""
+    });
+    save();
+    var c=document.createElement("canvas");c.width=1080;c.height=1350;
+    drawPoster(c);
+    var a=document.createElement("a");
+    a.download="marykay-promo-"+todayStr()+".png";
+    a.href=c.toDataURL("image/png");
+    a.click();
+    toast("Poster downloaded - share it!");
+  });
   function renderProducts(){
     var list=state.products.slice();
     if(prodQuery){var q=prodQuery.toLowerCase();list=list.filter(function(p){return (p.name||"").toLowerCase().indexOf(q)>=0||(p.cat||"").toLowerCase().indexOf(q)>=0})}
@@ -844,8 +1015,8 @@
     save();closeModals();renderProducts();toast(editingProduct?"Product updated":"Product added");
   });
   $("#promo-save").addEventListener("click",function(){
-    state.promo={title:($("#promo-title").value.trim()||"This Month's Offers"),lines:$("#promo-lines").value.split("\n").map(function(x){return x.trim()}).filter(Boolean),note:"You can update these offers any time from the Products page."};
-    save();closeModals();renderPromo();toast("Offers updated");
+    state.promo={title:($("#promo-title").value.trim()||monthLabel()+" \u2014 This Month's Offers"),lines:$("#promo-lines").value.split("\n").map(function(x){return x.trim()}).filter(Boolean),note:"You can update these offers any time from the Products page. They roll to a new month automatically.",month:monthKey(),stale:false};
+    save();closeModals();renderPromo();toast("This month's offers saved");
   });
   $("#prod-search").addEventListener("input",function(){prodQuery=this.value;renderProducts()});
 
@@ -1006,7 +1177,7 @@
   };
 
   /* ================================================================ INIT */
-  $("#vmark").textContent="v2.5";
+  $("#vmark").textContent="v2.7";
   load();
   var route=location.hash.replace("#","");
   go(route&&VIEW_TITLES[route]?route:"dashboard");
