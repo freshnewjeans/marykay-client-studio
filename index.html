@@ -283,17 +283,13 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
         Follow-ups <span class="badge" id="nav-followups" hidden></span>
       </button>
-      <button class="nav-item" data-view="products">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11V7a4 4 0 0 0-8 0v4M5 11h14l1 11H4z"/></svg>
-        Products
-      </button>
       <div class="grp">Manage</div>
       <button class="nav-item" data-view="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
         Settings
       </button>
     </nav>
-    <div class="foot">Designed &amp; Created by<br>Kevin Lim Fung Yen<br><span style="opacity:.72">v1.6</span></div>
+    <div class="foot">Designed &amp; Created by<br>Kevin Lim Fung Yen<br><span style="opacity:.72">v1.7</span></div>
   </aside>
 
   <!-- ===== Main ===== -->
@@ -316,7 +312,6 @@
       <div class="quick" id="quick-actions">
         <button class="btn btn-p" data-qa="sale"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New Sale</button>
         <button class="btn btn-ghost" data-qa="client"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Client</button>
-        <button class="btn btn-ghost" data-qa="products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Edit Products</button>
         <button class="btn btn-ghost" data-qa="followups"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Follow-ups</button>
       </div>
       <div class="grid dash-cols" style="margin-top:16px">
@@ -371,15 +366,6 @@
         </div>
       </div>
       <div class="list" id="fu-list"></div>
-    </section>
-
-    <!-- ===== View: Products ===== -->
-    <section class="view" id="view-products">
-      <div class="toolbar">
-        <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg><input id="prod-search" placeholder="Search products..."></div>
-        <button class="btn btn-p" id="prod-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
-      </div>
-      <div class="cards" id="prod-list"></div>
     </section>
 
     <!-- ===== View: Settings ===== -->
@@ -440,21 +426,6 @@
     </div>
     <div class="hint" id="s-total-hint">Saving this sale will automatically create 1-week, 2-week and 1-month follow-up reminders.</div>
     <div class="actions"><button class="btn btn-ghost grow" data-close>Cancel</button><button class="btn btn-p grow" id="sale-save">Save Sale</button></div>
-  </div>
-</div>
-
-<!-- ===== Modal: Product ===== -->
-<div class="modal" id="modal-product">
-  <div class="back"></div>
-  <div class="box">
-    <div class="mt"><h3 id="prod-modal-title">Add Product</h3><button class="x" data-close><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-    <div class="field"><label>Product name</label><input id="p-name" placeholder="e.g. TimeWise 3-In-1 Cleanser"></div>
-    <div class="field"><label>Category</label><select id="p-cat"><option>Skincare</option><option>Makeup</option><option>Fragrance</option><option>Body &amp; Bath</option><option>Other</option></select></div>
-    <div class="two">
-      <div class="field"><label>Price (RM)</label><input id="p-price" type="number" min="0" step="0.01"></div>
-      <div class="field"><label>Skin safe tag</label><input id="p-tag" placeholder="e.g. Bestseller"></div>
-    </div>
-    <div class="actions"><button class="btn btn-ghost grow" data-close>Cancel</button><button class="btn btn-p grow" id="prod-save">Save Product</button></div>
   </div>
 </div>
 
@@ -548,7 +519,7 @@
     function toast(msg){var t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove("show")},2400)}
 
     /* ----- routing ----- */
-    var VIEW_TITLES={dashboard:["Dashboard","Your Mary Kay business at a glance"],customers:["Clients","Everyone who loves your Mary Kay"],sales:["Sales","Every order and purchase recorded"],followups:["Follow-ups","Never miss a check-in again"],products:["Products","Your Mary Kay catalogue"],settings:["Settings","Templates, backup & preferences"]};
+    var VIEW_TITLES={dashboard:["Dashboard","Your Mary Kay business at a glance"],customers:["Clients","Everyone who loves your Mary Kay"],sales:["Sales","Every order and purchase recorded"],followups:["Follow-ups","Never miss a check-in again"],settings:["Settings","Templates, backup & preferences"]};
     var current="dashboard";
     function go(view){
       current=view; location.hash=view;
@@ -559,7 +530,6 @@
       if(view==="customers")renderCustomers();
       if(view==="sales")renderSales();
       if(view==="followups")renderFollowups();
-      if(view==="products")renderProducts();
       if(view==="settings")renderSettings();
     }
     window.addEventListener("hashchange",function(){var v=location.hash.replace("#","");go(v||"dashboard")});
@@ -574,7 +544,6 @@
       var a=b.dataset.qa;
       if(a==="sale"){if(state.customers.length){openSaleModal()}else{toast("Add a client first");openCustomerModal(null)}}
       else if(a==="client"){openCustomerModal(null)}
-      else if(a==="products"){go("products")}
       else if(a==="followups"){go("followups")}
     });
 
@@ -808,43 +777,6 @@
           if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(msg).then(function(){toast("Message copied")},function(){toast("Could not copy")})}
           else{var ta=document.createElement("textarea");ta.value=msg;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Message copied")}catch(err){toast("Could not copy")}document.body.removeChild(ta)}}
       }
-    });
-
-    /* ================================================================ PRODUCTS */
-    var prodQuery="";
-    function renderProducts(){
-      var q=prodQuery.toLowerCase();
-      var list=state.products.filter(function(p){return !q||(p.name||"").toLowerCase().indexOf(q)>=0||(p.cat||"").toLowerCase().indexOf(q)>=0});
-      var el=$("#prod-list");
-      if(!list.length){el.innerHTML='<div class="empty"><div class="t">No products'+(q?" match":" yet")+'</div><div class="d">Add products to your Mary Kay catalogue.</div></div>';return}
-      el.innerHTML=list.map(function(p){
-        return '<div class="card prod" data-prod-edit="'+esc(p.id)+'"><div class="ct"><div class="ava" style="font-size:13px">'+esc((p.cat||"P").slice(0,2).toUpperCase())+'</div><div class="grow"><div class="cn">'+esc(p.name)+'</div><div class="cp">'+esc(p.cat||"Other")+'</div></div></div>'+
-          (p.tag?'<span class="tag">'+esc(p.tag)+'</span>':"")+
-          '<div class="mini"><div class="m">'+money(p.price)+'</div><div class="d">tap to edit</div></div>'+
-          '<div class="foot"><button class="btn btn-ghost btn-sm" data-prod-edit="'+esc(p.id)+'">Edit</button><button class="btn btn-danger btn-sm" data-prod-del="'+esc(p.id)+'">Delete</button></div></div>';
-      }).join("");
-    }
-    $("#prod-search").addEventListener("input",function(){prodQuery=this.value;renderProducts()});
-    $("#prod-add").addEventListener("click",function(){openProductModal(null)});
-    document.addEventListener("click",function(e){
-      var t=e.target;
-      var del=t.closest("[data-prod-del]");
-      if(del){var pid=del.dataset.prodDel;var p=state.products.find(function(x){return x.id===pid});if(p&&confirm("Delete "+p.name+"?")){state.products=state.products.filter(function(x){return x.id!==pid});save();renderProducts();toast("Product deleted")}return}
-      var edit=t.closest("[data-prod-edit]");
-      if(edit){openProductModal(edit.dataset.prodEdit);return}
-    });
-    var prodEditId=null;
-    function openProductModal(id){prodEditId=id;var p=id?state.products.find(function(x){return x.id===id}):null;
-      $("#prod-modal-title").textContent=p?"Edit Product":"Add Product";
-      $("#p-name").value=p?p.name:"";$("#p-cat").value=p?p.cat:"Skincare";$("#p-price").value=p?p.price:"";$("#p-tag").value=p?p.tag:"";
-      openModal("#modal-product");}
-    $("#prod-save").addEventListener("click",function(){
-      var name=$("#p-name").value.trim();if(!name){toast("Enter a product name");return}
-      var price=parseFloat($("#p-price").value);if(isNaN(price)||price<0){toast("Enter a valid price");return}
-      var data={name:name,cat:$("#p-cat").value,price:price,tag:$("#p-tag").value.trim()};
-      if(prodEditId){Object.assign(state.products.find(function(x){return x.id===prodEditId}),data);toast("Product updated")}
-      else{state.products.push(Object.assign({id:uid()},data));toast("Product added")}
-      save();closeModals();renderProducts();
     });
 
     /* ================================================================ SETTINGS */
