@@ -458,7 +458,7 @@
   (function(){
     "use strict";
     var $=function(s){return document.querySelector(s)}, $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
-    var KEY="mk_crm_v1";
+    var KEY="mk_crm_v2";
     var PHASES={ "1w":"1-Week Check-in", "2w":"2-Week Check-in", "1m":"1-Month Check-in" };
 
     function uid(){return "id"+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
@@ -501,14 +501,17 @@
 
     var state={customers:[],products:DEFAULT_PRODUCTS,sales:[],followups:[],templates:DEFAULT_TPL,notify:false};
     function load(){
-      try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); state=Object.assign(state,d); if(!state.templates)state.templates=DEFAULT_TPL;}}catch(e){}
-      if(!state.products||!state.products.length){state.products=DEFAULT_PRODUCTS}
+      try{var raw=localStorage.getItem(KEY); if(raw){var d=JSON.parse(raw); state=Object.assign(state,d);}}catch(e){}
+      /* self-heal: never let a broken/stale saved state break the app */
+      if(!Array.isArray(state.products)||!state.products.length){state.products=DEFAULT_PRODUCTS}
       else{
-        var isOld=state.products.length===OLD_DEFAULT_IDS.length && state.products.every(function(p){return OLD_DEFAULT_IDS.indexOf(p.id)>=0});
+        var isOld=state.products.length===OLD_DEFAULT_IDS.length && state.products.every(function(p){return p&&p.id&&OLD_DEFAULT_IDS.indexOf(p.id)>=0});
         if(isOld){state.products=DEFAULT_PRODUCTS; state._migrated=1;}
       }
+      if(!Array.isArray(state.customers))state.customers=[];
+      if(!Array.isArray(state.sales))state.sales=[];
+      if(!Array.isArray(state.followups))state.followups=[];
       if(!state.templates)state.templates=DEFAULT_TPL;
-      if(!state.followups)state.followups=[];
     }
     function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 
