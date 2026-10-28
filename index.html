@@ -30,7 +30,7 @@
     -webkit-font-smoothing:antialiased;
   }
   body::before{
-    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    content:""; position:fixed; top:0; left:0; right:0; bottom:0; z-index:-1; pointer-events:none;
     background:
       radial-gradient(1100px 700px at 8% -10%, rgba(240,106,164,.30), transparent 55%),
       radial-gradient(900px 620px at 100% 0%, rgba(232,67,143,.18), transparent 55%),
@@ -187,9 +187,9 @@
   .empty .d{font-size:13px}
 
   /* Modal */
-  .modal{position:fixed; inset:0; z-index:100; display:none; align-items:flex-end; justify-content:center; padding:0}
+  .modal{position:fixed; top:0; left:0; right:0; bottom:0; z-index:100; display:none; align-items:flex-end; justify-content:center; padding:0}
   .modal.open{display:flex}
-  .modal .back{position:absolute; inset:0; background:rgba(68,42,54,.4)}
+  .modal .back{position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(68,42,54,.4)}
   .modal .box{position:relative; background:#fff; border:1px solid var(--line);
     border-radius:24px 24px 0 0; width:100%; max-width:560px; padding:22px 22px 24px; box-shadow:0 -12px 40px rgba(194,24,91,.22);
     max-height:92vh; overflow:auto; animation:sheet .3s ease}
@@ -293,7 +293,7 @@
         Settings
       </button>
     </nav>
-    <div class="foot">Designed &amp; Created by<br>Kevin Lim Fung Yen<br><span style="opacity:.72">v1.5</span></div>
+    <div class="foot">Designed &amp; Created by<br>Kevin Lim Fung Yen<br><span style="opacity:.72">v1.6</span></div>
   </aside>
 
   <!-- ===== Main ===== -->
@@ -826,12 +826,12 @@
     }
     $("#prod-search").addEventListener("input",function(){prodQuery=this.value;renderProducts()});
     $("#prod-add").addEventListener("click",function(){openProductModal(null)});
-    $("#prod-list").addEventListener("click",function(e){
+    document.addEventListener("click",function(e){
       var t=e.target;
       var del=t.closest("[data-prod-del]");
       if(del){var pid=del.dataset.prodDel;var p=state.products.find(function(x){return x.id===pid});if(p&&confirm("Delete "+p.name+"?")){state.products=state.products.filter(function(x){return x.id!==pid});save();renderProducts();toast("Product deleted")}return}
       var edit=t.closest("[data-prod-edit]");
-      if(edit){openProductModal(edit.dataset.prodEdit)}
+      if(edit){openProductModal(edit.dataset.prodEdit);return}
     });
     var prodEditId=null;
     function openProductModal(id){prodEditId=id;var p=id?state.products.find(function(x){return x.id===id}):null;
