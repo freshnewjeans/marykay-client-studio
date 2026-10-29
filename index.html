@@ -464,6 +464,24 @@
   var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
   function monthKey(d){d=d||new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)}
   function monthLabel(d){d=d||new Date();return MONTHS[d.getMonth()]+" "+d.getFullYear()}
+  var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  /* Share-or-download a Blob: on iPhone use the native share sheet (Save to Files / Save Image);
+     on desktop fall back to a normal file download. iOS Safari cannot force a programmatic download. */
+  function shareOrDownload(blob,name,toastMsg){
+    try{
+      if(navigator.canShare&&navigator.share&&navigator.canShare({files:[new File([blob],name,{type:blob.type||"application/octet-stream"})]})){
+        navigator.share({files:[new File([blob],name,{type:blob.type||"application/octet-stream"})],title:name});
+        if(toastMsg)toast(toastMsg);
+        return true;
+      }
+      var url=URL.createObjectURL(blob);
+      if(isIOS){var w=window.open(url,"_blank");if(!w&&navigator.share){navigator.share({title:name}).catch(function(){});}}
+      else{var a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);}
+      setTimeout(function(){URL.revokeObjectURL(url)},5000);
+      if(toastMsg)toast(toastMsg);
+      return true;
+    }catch(e){toast("Export not available on this browser");return false;}
+  }
   function dateAdd(ds,days){var p=ds.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]+days);return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2)}
   function daysBetween(a,b){var x=new Date(a),y=new Date(b);return Math.round((y-x)/86400000)}
   function initials(name){var s=(""+name).trim().split(/\s+/);return ((s[0]&&s[0][0])||"")+((s[1]&&s[1][0])||"")}
@@ -1063,12 +1081,12 @@
     save();
     var c=document.createElement("canvas");c.width=1080;c.height=1350;
     drawPoster(c);
+    var name="marykay-promo-"+todayStr()+".png";
     try{
-      var a=document.createElement("a");
-      a.download="marykay-promo-"+todayStr()+".png";
-      a.href=c.toDataURL("image/png");
-      a.click();
-      toast("Poster downloaded - share it!");
+      c.toBlob(function(blob){
+        if(!blob){toast("Could not export here - use the online link");return;}
+        shareOrDownload(blob,name,"Poster ready - share or save it");
+      },"image/png");
     }catch(err){toast("Could not export on this browser - open the online link to download");}
   });
   function renderProducts(){
@@ -1234,8 +1252,9 @@
   }
   $("#btn-save-tpl").addEventListener("click",function(){state.templates={"1w":$("#tpl-1w").value,"2w":$("#tpl-2w").value,"1m":$("#tpl-1m").value};save();toast("Templates saved")});
   $("#btn-export").addEventListener("click",function(){
-    var a=document.createElement("a");a.href="data:application/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(state,null,2));
-    a.download="marykay-backup-"+todayStr()+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);toast("Backup downloaded");
+    var name="marykay-backup-"+todayStr()+".json";
+    var blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+    shareOrDownload(blob,name,"Backup shared - save to Files");
   });
   $("#btn-import").addEventListener("click",function(){$("#import-file").click()});
   $("#import-file").addEventListener("change",function(e){
@@ -1269,7 +1288,7 @@
   };
 
   /* ================================================================ INIT */
-  $("#vmark").textContent="v2.8";
+  $("#vmark").textContent="v2.9";
   load();
   var route=location.hash.replace("#","");
   go(route&&VIEW_TITLES[route]?route:"dashboard");
