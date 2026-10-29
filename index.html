@@ -467,17 +467,21 @@
   var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
   /* Share-or-download a Blob: on iPhone use the native share sheet (Save to Files / Save Image);
      on desktop fall back to a normal file download. iOS Safari cannot force a programmatic download. */
+  function fallbackBlob(blob,name){
+    var url=URL.createObjectURL(blob);
+    if(isIOS){var w=window.open(url,"_blank");if(!w&&navigator.share){navigator.share({title:name}).catch(function(){});}}
+    else{var a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);}
+    setTimeout(function(){URL.revokeObjectURL(url)},5000);
+  }
   function shareOrDownload(blob,name,toastMsg){
     try{
       if(navigator.canShare&&navigator.share&&navigator.canShare({files:[new File([blob],name,{type:blob.type||"application/octet-stream"})]})){
-        navigator.share({files:[new File([blob],name,{type:blob.type||"application/octet-stream"})],title:name});
-        if(toastMsg)toast(toastMsg);
+        var sp=navigator.share({files:[new File([blob],name,{type:blob.type||"application/octet-stream"})],title:name});
+        if(sp&&sp.then){sp.then(function(){if(toastMsg)toast(toastMsg);}).catch(function(){fallbackBlob(blob,name);if(toastMsg)toast(toastMsg);});}
+        else if(toastMsg)toast(toastMsg);
         return true;
       }
-      var url=URL.createObjectURL(blob);
-      if(isIOS){var w=window.open(url,"_blank");if(!w&&navigator.share){navigator.share({title:name}).catch(function(){});}}
-      else{var a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);}
-      setTimeout(function(){URL.revokeObjectURL(url)},5000);
+      fallbackBlob(blob,name);
       if(toastMsg)toast(toastMsg);
       return true;
     }catch(e){toast("Export not available on this browser");return false;}
